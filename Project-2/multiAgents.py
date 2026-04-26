@@ -68,14 +68,135 @@ class ReflexAgent(Agent):
         to create a masterful evaluation function.
         """
         # Useful information you can extract from a GameState (pacman.py)
-        successorGameState = currentGameState.generatePacmanSuccessor(action)
-        newPos = successorGameState.getPacmanPosition()
-        newFood = successorGameState.getFood()
-        newGhostStates = successorGameState.getGhostStates()
-        newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
+        # successorGameState = currentGameState.generatePacmanSuccessor(action)
+        # newPos = successorGameState.getPacmanPosition()
+        # newFood = successorGameState.getFood()
+        # newGhostStates = successorGameState.getGhostStates()
+        # newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
 
         "*** YOUR CODE HERE ***"
-        return successorGameState.getScore()
+        successorGameState = currentGameState.generatePacmanSuccessor(action)
+        score = successorGameState.getScore()
+        newPos = successorGameState.getPacmanPosition()
+        newFood = successorGameState.getFood().asList()
+        newGhostStates = successorGameState.getGhostStates()
+
+        if len(newFood) > 0:
+            foodDistances = [manhattanDistance(newPos, food) for food in newFood]
+            minFoodDist = min(foodDistances)
+            score += 10 / (minFoodDist + 1)
+            score -= 2 * len(newFood)
+
+        for ghost in newGhostStates:
+            ghostPos = ghost.getPosition()
+            dist = manhattanDistance(newPos, ghostPos)
+
+            if ghost.scaredTimer > 0:
+                # can eat ghost
+                score += 5 / (dist + 1)
+            else:
+                # dangerous ghost
+                if dist < 2:
+                    score -= 500
+                else:
+                    score -= 2 / (dist + 1)
+
+        return score
+
+        # # version phức tạp hơn
+        # successorGameState = currentGameState.generatePacmanSuccessor(action)
+        # if successorGameState.isWin():
+        #     return float("inf")
+        # if successorGameState.isLose():
+        #     return -float("inf")
+
+        # from game import Directions
+
+        # score = successorGameState.getScore()
+
+        # newPos = successorGameState.getPacmanPosition()
+        # newFood = successorGameState.getFood().asList()
+        # newGhosts = successorGameState.getGhostStates()
+        # newCapsules = successorGameState.getCapsules()
+
+        # # =========================
+        # # GHOST ANALYSIS
+        # # =========================
+        # danger = False
+        # nearestGhostDist = float("inf")
+
+        # for ghost in newGhosts:
+        #     dist = manhattanDistance(newPos, ghost.getPosition())
+        #     nearestGhostDist = min(nearestGhostDist, dist)
+
+        #     if ghost.scaredTimer == 0 and dist <= 3:
+        #         danger = True
+
+        # # =========================
+        # # CAPSULE LOGIC
+        # # =========================
+        # if newCapsules:
+        #     capsuleDists = [manhattanDistance(newPos, c) for c in newCapsules]
+        #     minCapsuleDist = min(capsuleDists)
+
+        #     if danger:
+        #         score += 80 / (minCapsuleDist + 1)
+
+        # # =========================
+        # # GHOST SCORING (FIXED ZONES)
+        # # =========================
+        # for ghost in newGhosts:
+        #     dist = manhattanDistance(newPos, ghost.getPosition())
+
+        #     if ghost.scaredTimer > 0:
+        #         score += 200 / (dist + 1)
+        #     else:
+        #         if dist <= 1:
+        #             score -= 500
+        #         elif dist == 2:
+        #             score -= 200
+        #         elif dist == 3:
+        #             score -= 80
+        #         else:
+        #             score -= 5 / (dist + 1)
+
+        # # =========================
+        # # FOOD LOGIC (FIXED SCOPE)
+        # # =========================
+        # foodDists = []
+
+        # if newFood:
+        #     foodDists = [manhattanDistance(newPos, f) for f in newFood]
+        #     minFoodDist = min(foodDists)
+
+        #     if not danger:
+        #         score += 15 / (minFoodDist + 1)
+        #     else:
+        #         score += 5 / (minFoodDist + 1)
+
+        #     score -= 2 * len(newFood)
+
+        # # =========================
+        # # ENDGAME PRIORITY (SAFE CAPSULE vs FOOD)
+        # # =========================
+        # if len(newFood) == 1 and newCapsules:
+        #     if nearestGhostDist <= 3 and foodDists:
+        #         score -= 30 / (min(foodDists) + 1)
+
+        # # =========================
+        # # STOP PENALTY (FIXED DUPLICATE)
+        # # =========================
+        # if action == Directions.STOP:
+        #     score -= 10
+
+        # # =========================
+        # # DEAD END PENALTY
+        # # =========================
+        # legal = currentGameState.getLegalActions()
+        # if len(legal) <= 2:
+        #     score -= 20
+
+        # return score
 
 def scoreEvaluationFunction(currentGameState: GameState):
     """
