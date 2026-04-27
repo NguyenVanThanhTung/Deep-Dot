@@ -232,6 +232,46 @@ class MinimaxAgent(MultiAgentSearchAgent):
     """
     Your minimax agent (question 2)
     """
+    def minimax(self, gameState: GameState, agentIndex, depth):
+        numAgents = gameState.getNumAgents()
+        if gameState.isWin() or gameState.isLose():
+            return self.evaluationFunction(gameState)
+        if depth == self.depth:
+            return self.evaluationFunction(gameState)
+
+        if agentIndex == 0:
+            bestValue = -float('inf')
+            nextAgent = agentIndex + 1
+            nextDepth = depth
+
+            legalMoves = gameState.getLegalActions(agentIndex)
+            if not legalMoves:
+                return self.evaluationFunction(gameState)
+            
+            for legalMove in legalMoves:
+                successor = gameState.generateSuccessor(agentIndex, legalMove)
+                value = self.minimax(successor, nextAgent,  nextDepth)
+                bestValue = max(bestValue, value)
+            return bestValue
+        else:
+            bestValue = float('inf')
+            nextAgent = agentIndex + 1
+
+            if agentIndex == numAgents - 1:
+                nextAgent = 0
+                nextDepth = depth + 1
+            else:
+                nextDepth = depth
+
+            legalMoves = gameState.getLegalActions(agentIndex)
+            if not legalMoves:
+                return self.evaluationFunction(gameState)
+            
+            for legalMove in legalMoves:
+                successor = gameState.generateSuccessor(agentIndex, legalMove)
+                value = self.minimax(successor, nextAgent, nextDepth)
+                bestValue = min(bestValue, value)
+            return bestValue
 
     def getAction(self, gameState: GameState):
         """
@@ -257,7 +297,21 @@ class MinimaxAgent(MultiAgentSearchAgent):
         Returns whether or not the game state is a losing state
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        bestValue = -float('inf')
+        bestAction = None
+
+        legalMoves = gameState.getLegalActions(0)
+        if not legalMoves:
+            return self.evaluationFunction(gameState)
+            
+        for legalMove in legalMoves:
+            succesor = gameState.generateSuccessor(0, legalMove)
+            value = self.minimax(succesor, 1, 0)
+            if value > bestValue:
+                bestValue = value
+                bestAction = legalMove
+        
+        return bestAction
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
