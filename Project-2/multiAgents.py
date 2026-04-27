@@ -317,13 +317,72 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
     """
     Your minimax agent with alpha-beta pruning (question 3)
     """
+    def alphabeta(self, gameState: GameState, agentIndex, depth, alpha, beta):
+        numAgents = gameState.getNumAgents()
+        if gameState.isWin() or gameState.isLose():
+            return self.evaluationFunction(gameState)
+        if depth == self.depth:
+            return self.evaluationFunction(gameState)
+
+        legalMoves = gameState.getLegalActions(agentIndex)
+        if not legalMoves:
+            return self.evaluationFunction(gameState)
+        
+        if agentIndex == 0:
+            bestValue = -float('inf')
+            nextAgent = agentIndex + 1
+            nextDepth = depth
+            
+            for legalMove in legalMoves:
+                successor = gameState.generateSuccessor(agentIndex, legalMove)
+                value = self.alphabeta(successor, nextAgent, nextDepth, alpha, beta)
+                bestValue = max(bestValue, value)
+                if bestValue > beta:
+                    return bestValue
+                alpha = max(alpha, bestValue)
+            return bestValue
+        else:
+            bestValue = float('inf')
+            nextAgent = agentIndex + 1
+
+            if agentIndex == numAgents - 1:
+                nextAgent = 0
+                nextDepth = depth + 1
+            else:
+                nextDepth = depth
+            
+            for legalMove in legalMoves:
+                successor = gameState.generateSuccessor(agentIndex, legalMove)
+                value = self.alphabeta(successor, nextAgent, nextDepth, alpha, beta)
+                bestValue = min(bestValue, value)
+                if bestValue < alpha:
+                    return bestValue
+                beta = min(beta, bestValue)
+            return bestValue
 
     def getAction(self, gameState: GameState):
         """
         Returns the minimax action using self.depth and self.evaluationFunction
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        alpha = -float('inf')
+        beta = float('inf')
+        bestValue = -float('inf')
+        bestAction = None
+
+        legalMoves = gameState.getLegalActions(0)
+        if not legalMoves:
+            return self.evaluationFunction(gameState)
+            
+        for legalMove in legalMoves:
+            successor = gameState.generateSuccessor(0, legalMove)
+            value = self.alphabeta(successor, 1, 0, alpha, beta)
+            if value > bestValue:
+                bestValue = value
+                bestAction = legalMove
+            alpha = max(alpha, bestValue)
+
+        return bestAction
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
