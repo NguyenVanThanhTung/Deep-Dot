@@ -451,7 +451,7 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         
         return bestAction
 
-def betterEvaluationFunction(currentGameState: GameState):
+def betterEvaluationFunction(gameState: GameState):
     """
     Your extreme ghost-hunting, pellet-nabbing, food-gobbling, unstoppable
     evaluation function (question 5).
@@ -459,7 +459,60 @@ def betterEvaluationFunction(currentGameState: GameState):
     DESCRIPTION: <write something here so we know what you did>
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    if gameState.isWin():
+        return float("inf")
+    if gameState.isLose():
+        return -float("inf")
+
+    score = gameState.getScore()
+
+    pacmanPos = gameState.getPacmanPosition()
+    foodList = gameState.getFood().asList()
+    ghostStates = gameState.getGhostStates()
+    capsules = gameState.getCapsules()
+
+    danger = False
+    nearestGhostDist = float("inf")
+
+    for ghost in ghostStates:
+        dist = manhattanDistance(pacmanPos, ghost.getPosition())
+        nearestGhostDist = min(nearestGhostDist, dist)
+        if ghost.scaredTimer > 0:
+            score += 300 / (dist + 1)
+        else:
+            if dist <= 1:
+                score -= 600
+            elif dist == 2:
+                score -= 200
+            else:
+                score -= 5 / (dist + 1)
+
+            if dist <= 3:
+                danger = True
+
+    if capsules:
+        dists = [manhattanDistance(pacmanPos, c) for c in capsules]
+        minCapsuleDist = min(dists)
+        score += 20 / (minCapsuleDist + 1)
+        if danger:
+            score += 120 / (minCapsuleDist + 1)
+    
+    if foodList:
+        dists = [manhattanDistance(pacmanPos, f) for f in foodList]
+        minFoodDist = min(dists)
+        if danger:
+            score += 5 / (minFoodDist + 1)
+        else:
+            score += 20 / (minFoodDist + 1)
+        score -= 3 * len(foodList)
+
+    if len(foodList) <= 3:
+        score += 100
+
+    if len(gameState.getLegalActions(0)) <= 2:
+        score -= 10
+    
+    return score
 
 # Abbreviation
 better = betterEvaluationFunction
