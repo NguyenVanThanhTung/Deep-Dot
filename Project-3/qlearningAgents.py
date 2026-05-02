@@ -78,15 +78,9 @@ class QLearningAgent(ReinforcementAgent):
         if not legalActions:
             return None
 
-        bestAction = None
-        maxQValue = float('-inf')
-        for action in legalActions:
-            qValue = self.getQValue(state, action)
-            if qValue > maxQValue:
-                maxQValue = qValue
-                bestAction = action
-
-        return bestAction
+        maxQValue = self.computeValueFromQValues(state)
+        bestActions = [a for a in legalActions if self.getQValue(state, a) == maxQValue]
+        return random.choice(bestActions)
 
     def getAction(self, state):
         """
@@ -103,6 +97,9 @@ class QLearningAgent(ReinforcementAgent):
         legalActions = self.getLegalActions(state)
         action = None
         "*** YOUR CODE HERE ***"
+        if not legalActions:
+            return None
+
         if util.flipCoin(self.epsilon):
             action = random.choice(legalActions)
         else:
