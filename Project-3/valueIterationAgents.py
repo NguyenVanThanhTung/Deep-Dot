@@ -158,4 +158,44 @@ class PrioritizedSweepingValueIterationAgent(ValueIterationAgent):
 
     def runValueIteration(self):
         "*** YOUR CODE HERE ***"
+        mdp = self.mdp
+        states = mdp.getStates()
 
+        predecessors = {state: set() for state in states}
+        for state in states:
+            for action in mdp.getPossibleActions(state):
+                for nextState, prob in mdp.getTransitionStatesAndProbs(state, action):
+                    if prob > 0:
+                        predecessors[nextState].add(state)
+        
+        priorityQueue = util.PriorityQueue()
+        for state in states:
+            if not mdp.isTerminal(state):
+                actions = mdp.getPossibleActions(state)
+                maxQValue = float('-inf')
+                for action in actions:
+                    qValue = self.computeQValueFromValues(state, action)
+                    maxQValue = max(maxQValue, qValue)
+                diff = abs(self.values[state] - maxQValue)
+                priorityQueue.push(state, -diff)
+        
+        for i in range(self.iterations):
+            if priorityQueue.isEmpty():
+                break
+            
+            state = priorityQueue.pop()
+            if not mdp.isTerminal(state):
+                actions = mdp.getPossibleActions(state)
+                maxQValue = max(self.computeQValueFromValues(state, a) for a in actions)
+                self.values[state] = maxQValue
+            
+            for predecessor in predecessors[state]:
+                if not mdp.isTerminal(predecessor):
+                    actions = mdp.getPossibleActions(predecessor)
+                    maxQValue = float('-inf')
+                    for action in actions:
+                        qValue = self.computeQValueFromValues(predecessor, action)
+                        maxQValue = max(maxQValue, qValue)
+                    diff = abs(self.values[predecessor] - maxQValue)
+                    if diff > self.theta:
+                        priorityQueue.update(predecessor, -diff)
