@@ -18,6 +18,7 @@ from featureExtractors import *
 
 import random,util,math
 
+# Vì code ở Q5 & Q6 đã đủ tốt nên pass luôn Q8
 class QLearningAgent(ReinforcementAgent):
     """
       Q-Learning Agent
