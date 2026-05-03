@@ -81,25 +81,28 @@ class ReflexAgent(Agent):
         newFood = successorGameState.getFood().asList()
         newGhostStates = successorGameState.getGhostStates()
 
-        if len(newFood) > 0:
-            foodDistances = [manhattanDistance(newPos, food) for food in newFood]
-            minFoodDist = min(foodDistances)
-            score += 10 / (minFoodDist + 1)
+        # 2. Ưu tiên ăn thức ăn (Food)
+        if newFood:
+            # Tìm khoảng cách đến viên thức ăn gần nhất
+            minFoodDist = min([manhattanDistance(newPos, food) for food in newFood])
+            # Cộng điểm dựa trên nghịch đảo khoảng cách (càng gần càng cộng nhiều)
+            score += 10.0 / (minFoodDist + 1)
+            # Trừ điểm dựa trên số lượng thức ăn còn lại để ép Pacman phải ăn
             score -= 2 * len(newFood)
 
+        # 3. Phân tích tương tác với Ghost
         for ghost in newGhostStates:
-            ghostPos = ghost.getPosition()
-            dist = manhattanDistance(newPos, ghostPos)
-
+            dist = manhattanDistance(newPos, ghost.getPosition())
+            
             if ghost.scaredTimer > 0:
-                # can eat ghost
-                score += 5 / (dist + 1)
+                # Nếu ma đang sợ: Khuyến khích lại gần để ăn ma
+                score += 5.0 / (dist + 1)
             else:
-                # dangerous ghost
+                # Nếu ma đang nguy hiểm:
                 if dist < 2:
-                    score -= 500
+                    score -= 500  # Phạt cực nặng nếu đứng sát ma
                 else:
-                    score -= 2 / (dist + 1)
+                    score -= 2.0 / (dist + 1) # Phạt nhẹ nếu ở xa nhưng vẫn cảnh giác
 
         return score
 
